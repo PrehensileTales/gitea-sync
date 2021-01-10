@@ -23,13 +23,7 @@ KEYCLOAK_CLIENT_SECRET=os.environ.get('KEYCLOAK_CLIENT_SECRET')
 GITEA_URL=os.environ.get('GITEA_URL')
 GITEA_API_KEY=os.environ.get('GITEA_API_KEY')
 
-keycloak_admin = KeycloakAdmin(
-    server_url=KEYCLOAK_URL,
-    username=KEYCLOAK_USERNAME,
-    password=KEYCLOAK_PASSWORD,
-    realm_name=KEYCLOAK_REALM,
-    client_secret_key=KEYCLOAK_CLIENT_SECRET,
-    verify=True)
+keycloak_admin = None
 
 # Configure API key authorization: AccessToken
 configuration = giteapy.Configuration()
@@ -191,6 +185,17 @@ def get_keycloak_groups():
     return retval
 
 def sync():
+    global keycloak_admin
+
+    keycloak_admin = KeycloakAdmin(
+        server_url=KEYCLOAK_URL,
+        username=KEYCLOAK_USERNAME,
+        password=KEYCLOAK_PASSWORD,
+        realm_name=KEYCLOAK_REALM,
+        client_secret_key=KEYCLOAK_CLIENT_SECRET,
+        verify=True
+    )
+
     ku = get_keycloak_users()
     gu = get_gitea_users()
 
