@@ -46,14 +46,19 @@ def get_random_string(length):
     return result_str
 
 def get_keycloak_users():
+    retval = []
     users = keycloak_admin.get_users({})
+
     for user in users:
         user_groups = keycloak_admin.get_user_groups(user_id=user['id'])
         user['groups'] = []
         for group in user_groups:
             user['groups'].append(group['name'])
 
-    return users
+        if 'gitea' in user['groups']:
+            retval.append(user)
+
+    return retval
 
 def get_gitea_users():
     try:
