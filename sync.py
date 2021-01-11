@@ -270,6 +270,8 @@ def sync():
                 for org in organizations:
                     if org['organization'].username == group['name']:
                         found = True
+            else:
+                invalid = True
         except KeyError:
             invalid = True
 
