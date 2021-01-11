@@ -144,6 +144,8 @@ def create_gitea_organization(keycloak_group):
     api_response = gitea_admin.admin_create_org('gitea', body)
 
     body = giteapy.CreateTeamOption(
+        can_create_org_repo=True,
+        includes_all_repositories=True,
         name="Members",
         permission='write',
         units=['repo.code',
@@ -156,6 +158,24 @@ def create_gitea_organization(keycloak_group):
            'repo.projects']
     )
     api_response = gitea_org.org_create_team(keycloak_group['name'], body=body)
+
+def update_gitea_organization(keycloak_group):
+    team_id = get_gitea_members_team(keycloak_group['name'])
+    body = giteapy.EditTeamOption(
+        can_create_org_repo=True,
+        includes_all_repositories=True,
+        name="Members",
+        permission='write',
+        units=['repo.code',
+           'repo.issues',
+           'repo.pulls',
+           'repo.releases',
+           'repo.wiki',
+           'repo.ext_wiki',
+           'repo.ext_issues',
+           'repo.projects']
+    )
+    api_response = gitea_org.org_edit_team(team_id, body=body)
 
 def add_user_to_gitea_organization(organization, login):
     team_id = get_gitea_members_team(organization)
@@ -244,17 +264,21 @@ def sync():
 
     for group in keycloak_groups:
         found = False
+        invalid = False
         try:
             if 'customer' in group['attributes']['businessCategory']:
                 for org in organizations:
                     if org['organization'].username == group['name']:
                         found = True
         except KeyError:
-            found = True
+            invalid = True
 
-        if not found:
+        if not found and not invalid:
             print(f"Organization {group['name']} not found, creating")
             create_gitea_organization(group)
+        if found and not invalid:
+            print(f"Updating organization {group['name']}")
+            update_gitea_organization(group)
 
     organizations = get_gitea_organizations()
 
